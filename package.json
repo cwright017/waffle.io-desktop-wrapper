@@ -1,0 +1,30 @@
+{
+  "name": "waffle.io-desktop-wrapper",
+  "version": "0.1.0",
+  "description": "A desktop wrapper for waffle.io",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js",
+    "package": "electron-packager . Waffle --platform=darwin --arch=x64 --version=0.1.0 --out=./Release --icon=./images/icon.icns --overwrite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cwright017/waffle.io-desktop-wrapper.git"
+  },
+  "keywords": [
+    "Electron",
+    "waffle.io",
+    "waffle",
+    "github"
+  ],
+  "author": "CWright017",
+  "license": "APACHE",
+  "bugs": {
+    "url": "https://github.com/Cwright017/waffle.io-desktop-wrapper/issues"
+  },
+  "homepage": "https://github.com/Cwright017/waffle.io-desktop-wrapper#readme",
+  "devDependencies": {
+    "electron-packager": "^5.2.1",
+    "electron-prebuilt": "^0.36.0"
+  }
+}
