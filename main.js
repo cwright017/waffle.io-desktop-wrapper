@@ -1,6 +1,8 @@
 'use strict';
 
 const electron = require('electron');
+const ipcMain = require('electron').ipcMain;
+const fetch = require('node-fetch');
 const app = electron.app;
 const Menu = electron.Menu;
 const MenuItem = electron.MenuItem;
@@ -11,6 +13,36 @@ const BrowserWindow = electron.BrowserWindow;
 let mainWindow;
 let appIcon = null;
 let menu;
+let projectURL;
+let projectName;
+
+ipcMain.on('synchronous-message', function(event, arg) {
+  projectURL = arg.newURL;
+  projectName = arg.newURL.split('https://api.waffle.io/projects/',2)[1];
+  event.returnValue = '';
+});
+
+function getPullRequests() {
+  fetch('https://api.waffle.io/' + projectName + '/cards')
+  .then(function(res){
+    return res.json()
+  })
+  .then(function(json){
+    let arr = [];
+    json.forEach(function(item){
+      // console.log(item);
+      if(item.githubMetadata.pull_request && item.githubMetadata.state === 'open') {
+        arr.push(item)
+      }
+    })
+    return arr;
+  })
+  .then(function(resarr){
+    appIcon.setTitle('' + resarr.length);
+    app.dock.setBadge('' + resarr.length);
+    // mainWindow.webContents.executeJavaScript("notify("+ resarr.length +");");
+  })
+}
 
 function createWindow () {
   mainWindow = new BrowserWindow({width: 800, height: 600, alwaysOnTop: false, frame: false});
@@ -20,11 +52,18 @@ function createWindow () {
 
   mainWindow.webContents.on('did-finish-load', function() {
     mainWindow.webContents.session.cookies.get({domain: 'github.com'}, function(error, cookies) {
-      console.log(cookies);
+      // console.log(cookies);
     });
   });
 
   appIcon = new Tray(__dirname + '/images/visible.png');
+
+  setInterval(function(){
+    if(projectName) {
+      getPullRequests(projectName);
+    }
+  },5000)
+
   let template = [
     {
       label: 'Edit',

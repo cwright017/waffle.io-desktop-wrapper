@@ -14,6 +14,7 @@
 
     <script>
       'use strict'
+      const ipcRenderer = require('electron').ipcRenderer;
       let webview = document.getElementById("webview");
       let popup = document.getElementById("popup");
       let blur = document.getElementById("blur");
@@ -43,6 +44,21 @@
           hidePopup();
         }
       });
+
+      // function notify(num) {
+      //   var options = {
+      //       body: num,
+      //       icon: './images/visible@4x.png'
+      //   }
+      //
+      //   var n = new Notification('Emogotchi says',options);
+      // }
+
+      webview.addEventListener('did-get-response-details', function(event) {
+        if(event.newURL.indexOf('https://api.waffle.io/projects') !== -1) {
+          ipcRenderer.sendSync('synchronous-message', event);
+        }
+      })
 
     </script>
   </body>
