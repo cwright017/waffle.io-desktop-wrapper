@@ -30,8 +30,13 @@ function getPullRequests(projectName) {
     return json.filter((item) => item.githubMetadata.pull_request && item.githubMetadata.state === 'open');
   })
   .then((res) => {
-    appIcon.setTitle('' + res.length);
-    app.dock.setBadge('' + res.length);
+    if(res.length > 0) {
+      appIcon.setTitle('' + res.length);
+      app.dock.setBadge('' + res.length);
+    }else{
+      appIcon.setTitle('');
+      app.dock.setBadge('');
+    }
   })
 }
 
