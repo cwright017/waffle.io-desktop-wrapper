@@ -17,6 +17,10 @@
     popup.focus();
   }
 
+  webview.addEventListener('page-title-updated', (e) => {
+    ipcRenderer.send('project-changed', e);
+  });
+
   webview.addEventListener('new-window', (e) => {
     showPopup(e);
   });
@@ -31,8 +35,8 @@
     }
   });
 
-  webview.addEventListener('did-get-response-details', (event) => {
-    if(event.newURL.indexOf('https://api.waffle.io/projects') !== -1) {
-      ipcRenderer.send('project-updated', event);
-    }
-  })
+  // webview.addEventListener('did-get-response-details', (event) => {
+  //   if(event.newURL.indexOf('https://api.waffle.io/projects') !== -1) {
+  //     ipcRenderer.send('project-updated', event);
+  //   }
+  // })

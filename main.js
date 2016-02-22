@@ -16,10 +16,15 @@ let menu;
 let projectURL;
 let projectName;
 
-ipcMain.on('project-updated', (event, data) => {
-  projectURL = data.newURL;
-  projectName = data.newURL.split('https://api.waffle.io/projects/',2)[1];
+ipcMain.on('project-changed', (event, data) => {
+  clearBadge();
+  projectName = data.title;
 });
+
+let clearBadge = () => {
+  appIcon.setTitle('');
+  app.dock.setBadge('');
+};
 
 function getPullRequests(projectName) {
   fetch('https://api.waffle.io/'+ projectName + '/cards')
@@ -34,8 +39,7 @@ function getPullRequests(projectName) {
       appIcon.setTitle('' + res.length);
       app.dock.setBadge('' + res.length);
     }else{
-      appIcon.setTitle('');
-      app.dock.setBadge('');
+      clearBadge();
     }
   })
 }
