@@ -7,58 +7,43 @@ const app = electron.app;
 const Menu = electron.Menu;
 const MenuItem = electron.MenuItem;
 const Tray = electron.Tray;
-
 const BrowserWindow = electron.BrowserWindow;
+const environment = process.env.NODE_ENV || 'production';
 
 let mainWindow;
-let appIcon = null;
+let appIcon;
 let menu;
 let projectURL;
 let projectName;
 
-ipcMain.on('synchronous-message', function(event, arg) {
-  projectURL = arg.newURL;
-  projectName = arg.newURL.split('https://api.waffle.io/projects/',2)[1];
-  event.returnValue = '';
+ipcMain.on('project-updated', (event, data) => {
+  projectURL = data.newURL;
+  projectName = data.newURL.split('https://api.waffle.io/projects/',2)[1];
 });
 
-function getPullRequests() {
-  fetch('https://api.waffle.io/' + projectName + '/cards')
-  .then(function(res){
+function getPullRequests(projectName) {
+  fetch('https://api.waffle.io/'+ projectName + '/cards')
+  .then((res) => {
     return res.json()
   })
-  .then(function(json){
-    let arr = [];
-    json.forEach(function(item){
-      // console.log(item);
-      if(item.githubMetadata.pull_request && item.githubMetadata.state === 'open') {
-        arr.push(item)
-      }
-    })
-    return arr;
+  .then((json) => {
+    return json.filter((item) => item.githubMetadata.pull_request && item.githubMetadata.state === 'open');
   })
-  .then(function(resarr){
-    appIcon.setTitle('' + resarr.length);
-    app.dock.setBadge('' + resarr.length);
-    // mainWindow.webContents.executeJavaScript("notify("+ resarr.length +");");
+  .then((res) => {
+    appIcon.setTitle('' + res.length);
+    app.dock.setBadge('' + res.length);
   })
 }
 
 function createWindow () {
   mainWindow = new BrowserWindow({width: 800, height: 600, alwaysOnTop: false, frame: false});
-  mainWindow.loadURL('file://' + __dirname + '/index.html');
+  mainWindow.loadURL('file://' + __dirname + '/app/index.html');
   mainWindow.maximize();
   mainWindow.setResizable(false);
 
-  mainWindow.webContents.on('did-finish-load', function() {
-    mainWindow.webContents.session.cookies.get({domain: 'github.com'}, function(error, cookies) {
-      // console.log(cookies);
-    });
-  });
-
   appIcon = new Tray(__dirname + '/images/visible.png');
 
-  setInterval(function(){
+  setInterval(() => {
     if(projectName) {
       getPullRequests(projectName);
     }
@@ -106,7 +91,7 @@ function createWindow () {
   ];
 
   if (process.platform == 'darwin') {
-    var name = require('electron').app.getName();
+    let name = require('electron').app.getName();
     template.unshift({
       label: name,
       submenu: [
@@ -145,7 +130,7 @@ function createWindow () {
         {
           label: 'Quit',
           accelerator: 'Command+Q',
-          click: function() { app.quit(); }
+          click: () => app.quit()
         },
       ]
     });
@@ -154,50 +139,43 @@ function createWindow () {
   let menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  appIcon.setToolTip('This is my application.');
-  appIcon.on('click', function() {
-    if(mainWindow.isVisible()){
-      mainWindow.hide()
-      appIcon.setImage(__dirname + '/images/hidden.png');
-    }else{
-      mainWindow.show()
-      appIcon.setImage(__dirname + '/images/visible.png');
-    }
+  appIcon.setToolTip('Waffle.io');
+  appIcon.on('click', () => {
+    mainWindow.isVisible() ? hideWindow() : showWindow()
   })
 
-  mainWindow.on('blur', function() {
-    mainWindow.hide()
-    appIcon.setImage(__dirname + '/images/hidden.png');
+  mainWindow.on('blur', () => {
+    hideWindow();
   });
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  let hideWindow = () => {
+    mainWindow.hide()
+    appIcon.setImage(__dirname + '/images/hidden.png');
+  };
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function() {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
+  let showWindow = () => {
+    mainWindow.show()
+    appIcon.setImage(__dirname + '/images/visible.png');
+  };
+
+  if(environment === 'development') {
+    mainWindow.webContents.openDevTools();
+  }
+
+  mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
 app.on('ready', createWindow);
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function () {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
+app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-app.on('activate', function () {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
+app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
   }

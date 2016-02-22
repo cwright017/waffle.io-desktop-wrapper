@@ -4,7 +4,7 @@
   "description": "A desktop wrapper for waffle.io",
   "main": "main.js",
   "scripts": {
-    "start": "electron main.js",
+    "start": "NODE_ENV=development electron main.js",
     "package": "electron-packager . Waffle --platform=darwin --arch=x64 --version=0.1.0 --out=./Release --icon=./images/icon.icns --overwrite"
   },
   "repository": {
