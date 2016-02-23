@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "NODE_ENV=development electron main.js",
-    "package": "electron-packager . Waffle --platform=darwin --arch=x64 --version=0.1.0 --out=./Release --icon=./images/icon.icns --overwrite"
+    "package": "NODE_ENV=production electron-packager . Waffle --platform=darwin --arch=x64 --out=./Release --icon=./images/icon.icns --overwrite"
   },
   "repository": {
     "type": "git",
