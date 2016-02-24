@@ -1,5 +1,6 @@
   'use strict'
-  const ipcRenderer = require('electron').ipcRenderer;
+  import {ipcRenderer} from 'electron';
+
   let webview = document.getElementById("webview");
   let popup = document.getElementById("popup");
   let blur = document.getElementById("blur");
@@ -34,9 +35,3 @@
       hidePopup();
     }
   });
-
-  // webview.addEventListener('did-get-response-details', (event) => {
-  //   if(event.newURL.indexOf('https://api.waffle.io/projects') !== -1) {
-  //     ipcRenderer.send('project-updated', event);
-  //   }
-  // })

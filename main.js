@@ -1,13 +1,7 @@
 'use strict';
-
-const electron = require('electron');
-const ipcMain = require('electron').ipcMain;
+import {electron, ipcMain, app, Menu, MenuItem, Tray, BrowserWindow} from 'electron';
 const fetch = require('node-fetch');
-const app = electron.app;
-const Menu = electron.Menu;
-const MenuItem = electron.MenuItem;
-const Tray = electron.Tray;
-const BrowserWindow = electron.BrowserWindow;
+
 const environment = process.env.NODE_ENV || 'production';
 
 let mainWindow;
@@ -100,7 +94,7 @@ function createWindow () {
   ];
 
   if (process.platform == 'darwin') {
-    let name = require('electron').app.getName();
+    let name = app.getName();
     template.unshift({
       label: name,
       submenu: [

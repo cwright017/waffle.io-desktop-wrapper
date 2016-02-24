@@ -4,8 +4,8 @@
   "description": "A desktop wrapper for waffle.io",
   "main": "main.js",
   "scripts": {
-    "start": "NODE_ENV=development electron main.js",
-    "package": "NODE_ENV=production electron-packager . Waffle --platform=darwin --arch=x64 --out=./Release --icon=./images/icon.icns --overwrite"
+    "start": "NODE_ENV=development gulp start-dev",
+    "package": "gulp package"
   },
   "repository": {
     "type": "git",
@@ -24,8 +24,14 @@
   },
   "homepage": "https://github.com/Cwright017/waffle.io-desktop-wrapper#readme",
   "devDependencies": {
+    "babel-preset-es2015": "^6.5.0",
     "electron-packager": "^5.2.1",
-    "electron-prebuilt": "^0.36.0"
+    "electron-prebuilt": "^0.36.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-clean": "^0.3.1",
+    "gulp-install": "^0.6.0",
+    "gulp-run-electron": "^1.2.2"
   },
   "dependencies": {
     "node-fetch": "^1.3.3"

@@ -1,3 +1,4 @@
 node_modules
-Release
+_packages
+package
 .DS_STORE
