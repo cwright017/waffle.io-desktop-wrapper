@@ -1,26 +1,26 @@
-var gulp = require('gulp'),
+const gulp = require('gulp'),
     clean = require('gulp-clean'),
     install = require('gulp-install'),
     babel = require('gulp-babel'),
     packager = require('electron-packager'),
     runElectron = require("gulp-run-electron");
 
-gulp.task('clean', function() {
+gulp.task('clean', () => {
   return gulp.src('package', {read: false})
     .pipe(clean({force: true}));
 });
 
-gulp.task('copy-app', ['clean'], function() {
+gulp.task('copy-app', ['clean'], () => {
   return gulp.src(['app/**/*', 'images/**/*', 'main.js', 'package.json'], {base: '.'})
     .pipe(gulp.dest('package'));
 });
 
-gulp.task('install', ['copy-app'], function() {
+gulp.task('install', ['copy-app'], () => {
   return gulp.src('./package/package.json')
     .pipe(install({production: true}));
 });
 
-gulp.task('precompile', ['install'], function() {
+gulp.task('precompile', ['install'], () => {
   return gulp.src('./package/**/*.js')
           .pipe(babel({
               presets: ['es2015']
@@ -28,13 +28,13 @@ gulp.task('precompile', ['install'], function() {
           .pipe(gulp.dest('./package'))
 });
 
-gulp.task('run', ['precompile'], function() {
+gulp.task('run', ['precompile'], () => {
   gulp.src("./package")
   	.pipe(runElectron());
 });
 
-gulp.task('package', ['precompile'], function() {
-  var options = {
+gulp.task('package', ['precompile'], () => {
+  const options = {
          dir: "./package",
          platform: "darwin",
          arch: "x64",
@@ -52,7 +52,7 @@ gulp.task('package', ['precompile'], function() {
   });
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', () => {
     gulp.watch(['./app/**/*', 'main.js'], ['start-dev']);
 });
 

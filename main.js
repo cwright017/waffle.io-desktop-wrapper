@@ -1,7 +1,6 @@
 'use strict';
 import {electron, ipcMain, app, Menu, MenuItem, Tray, BrowserWindow} from 'electron';
-const fetch = require('node-fetch');
-
+import fetch from 'node-fetch';
 const environment = process.env.NODE_ENV || 'production';
 
 let mainWindow;
