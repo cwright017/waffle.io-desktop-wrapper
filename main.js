@@ -20,6 +20,21 @@ let clearBadge = () => {
   app.dock.setBadge('');
 };
 
+let focusWindow = () => {
+  mainWindow.focus();
+}
+
+let hideWindow = () => {
+  mainWindow.hide();
+  appIcon.setImage(__dirname + '/images/hidden.png');
+};
+
+let showWindow = () => {
+  mainWindow.show();
+  mainWindow.focus();
+  appIcon.setImage(__dirname + '/images/visible.png');
+};
+
 function getPullRequests(projectName) {
   fetch('https://api.waffle.io/' + projectName + '/cards', {headers: headers})
   .then((res) => {
@@ -155,21 +170,6 @@ function createWindow () {
     appIcon.popUpContextMenu(contextMenu);
   })
 
-  let focusWindow = () => {
-    mainWindow.focus();
-  }
-
-  let hideWindow = () => {
-    mainWindow.hide();
-    appIcon.setImage(__dirname + '/images/hidden.png');
-  };
-
-  let showWindow = () => {
-    mainWindow.show();
-    mainWindow.focus();
-    appIcon.setImage(__dirname + '/images/visible.png');
-  };
-
   if(environment === 'development') {
     mainWindow.webContents.openDevTools();
   }
@@ -201,5 +201,7 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
+  }else{
+    showWindow();
   }
 });
