@@ -8,6 +8,7 @@ let appIcon;
 let menu;
 let projectURL;
 let projectName;
+let headers;
 
 ipcMain.on('project-changed', (event, data) => {
   clearBadge();
@@ -20,7 +21,7 @@ let clearBadge = () => {
 };
 
 function getPullRequests(projectName) {
-  fetch('https://api.waffle.io/'+ projectName + '/cards')
+  fetch('https://api.waffle.io/' + projectName + '/cards', {headers: headers})
   .then((res) => {
     return res.json()
   })
@@ -34,7 +35,7 @@ function getPullRequests(projectName) {
     }else{
       clearBadge();
     }
-  })
+  });
 }
 
 function createWindow () {
@@ -167,6 +168,17 @@ function createWindow () {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+  
+  const filter = {
+    urls: ["https://api.waffle.io/*"]
+  };
+
+  mainWindow.webContents.session.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
+    if(details.requestHeaders['Authorization']){
+      headers = details.requestHeaders;
+    }
+    callback({cancel: false, requestHeaders: details.requestHeaders});
+  })
 }
 
 app.on('ready', createWindow);
