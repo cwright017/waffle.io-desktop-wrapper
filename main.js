@@ -142,22 +142,31 @@ function createWindow () {
   let menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
+  let contextMenu = Menu.buildFromTemplate([
+    { label: 'Hide Window', click: () => hideWindow() }
+  ]);
+
   appIcon.setToolTip('Waffle.io');
   appIcon.on('click', () => {
-    mainWindow.isVisible() ? hideWindow() : showWindow()
+    mainWindow.isVisible() ? focusWindow() : showWindow()
   })
 
-  mainWindow.on('blur', () => {
-    hideWindow();
-  });
+  appIcon.on('right-click', () => {
+    appIcon.popUpContextMenu(contextMenu);
+  })
+
+  let focusWindow = () => {
+    mainWindow.focus();
+  }
 
   let hideWindow = () => {
-    mainWindow.hide()
+    mainWindow.hide();
     appIcon.setImage(__dirname + '/images/hidden.png');
   };
 
   let showWindow = () => {
-    mainWindow.show()
+    mainWindow.show();
+    mainWindow.focus();
     appIcon.setImage(__dirname + '/images/visible.png');
   };
 
@@ -168,7 +177,7 @@ function createWindow () {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-  
+
   const filter = {
     urls: ["https://api.waffle.io/*"]
   };
