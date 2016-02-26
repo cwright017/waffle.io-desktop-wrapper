@@ -11,7 +11,7 @@ gulp.task('clean', () => {
     .pipe(clean({force: true}));
 });
 
-gulp.task('copy-app', ['clean'], () => {
+gulp.task('copy-app', ['clean', 'lint'], () => {
   return gulp.src(['app/**/*', 'images/**/*', 'main.js', 'package.json'], {base: '.'})
     .pipe(gulp.dest('package'));
 });
@@ -21,7 +21,7 @@ gulp.task('install', ['copy-app'], () => {
     .pipe(install({production: true}));
 });
 
-gulp.task('precompile', ['install'], () => {
+gulp.task('precompile', ['lint', 'install'], () => {
   return gulp.src('./package/**/*.js')
           .pipe(babel({
               presets: ['es2015']
@@ -53,8 +53,8 @@ gulp.task('package', ['precompile'], () => {
   });
 });
 
-gulp.task('lint', ['precompile'], function () {
-    return gulp.src(['**/*.js','!node_modules/**'])
+gulp.task('lint', function () {
+    return gulp.src(['./app/**/*.js', 'main.js', '!*/node_modules/**'])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
@@ -64,5 +64,5 @@ gulp.task('watch', () => {
     gulp.watch(['./app/**/*', 'main.js'], ['start-dev']);
 });
 
-gulp.task('default', ['clean', 'copy-app', 'install', 'precompile', 'lint', 'package']);
-gulp.task('start-dev', ['clean', 'copy-app', 'install', 'precompile', 'lint', 'run']);
+gulp.task('default', ['clean', 'lint', 'copy-app', 'install', 'precompile', 'package']);
+gulp.task('start-dev', ['clean', 'lint', 'copy-app', 'install', 'precompile', 'run']);

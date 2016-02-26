@@ -1,176 +1,170 @@
 'use strict';
-import {electron, ipcMain, app, Menu, MenuItem, Tray, BrowserWindow} from 'electron';
+import { ipcMain, app, Menu, Tray, BrowserWindow } from 'electron';
 import fetch from 'node-fetch';
 const environment = process.env.NODE_ENV || 'production';
 
 let mainWindow;
 let appIcon;
-let menu;
-let projectURL;
 let projectName;
 let headers;
 
-ipcMain.on('project-changed', (event, data) => {
-  clearBadge();
-  projectName = data.title;
-});
-
-let clearBadge = () => {
+function clearBadge() {
   appIcon.setTitle('');
   app.dock.setBadge('');
-};
+}
 
-let focusWindow = () => {
+function focusWindow() {
   mainWindow.focus();
 }
 
-let hideWindow = () => {
+function hideWindow() {
   mainWindow.hide();
-  appIcon.setImage(__dirname + '/images/hidden.png');
-};
+  appIcon.setImage(`${__dirname}/images/hidden.png`);
+}
 
-let showWindow = () => {
+function showWindow() {
   mainWindow.show();
   mainWindow.focus();
-  appIcon.setImage(__dirname + '/images/visible.png');
-};
+  appIcon.setImage(`${__dirname}/images/visible.png`);
+}
 
-function getPullRequests(projectName) {
-  fetch('https://api.waffle.io/' + projectName + '/cards', {headers: headers})
+function getPullRequests() {
+  fetch(`https://api.waffle.io/${projectName}/cards`, { headers })
+  .then((res) => res.json())
+  .then((json) =>
+    json.filter((item) => item.githubMetadata.pull_request && item.githubMetadata.state === 'open'))
   .then((res) => {
-    return res.json()
-  })
-  .then((json) => {
-    return json.filter((item) => item.githubMetadata.pull_request && item.githubMetadata.state === 'open');
-  })
-  .then((res) => {
-    if(res.length > 0) {
-      appIcon.setTitle('' + res.length);
-      app.dock.setBadge('' + res.length);
-    }else{
+    if (res.length > 0) {
+      appIcon.setTitle(res.length.toString());
+      app.dock.setBadge(res.length.toString());
+    } else {
       clearBadge();
     }
   });
 }
 
-function createWindow () {
-  mainWindow = new BrowserWindow({width: 800, height: 600, alwaysOnTop: false, frame: false});
-  mainWindow.loadURL('file://' + __dirname + '/app/index.html');
+function createWindow() {
+  mainWindow = new BrowserWindow({ width: 800, height: 600, alwaysOnTop: false, frame: false });
+  mainWindow.loadURL(`file://${__dirname}/app/index.html`);
   mainWindow.maximize();
   mainWindow.setResizable(false);
 
-  appIcon = new Tray(__dirname + '/images/visible.png');
+  appIcon = new Tray(`${__dirname}/images/visible.png`);
 
   setInterval(() => {
-    if(projectName) {
-      getPullRequests(projectName);
+    if (projectName) {
+      getPullRequests();
     }
-  },5000)
+  }, 5000);
 
-  let template = [
+  const template = [
     {
       label: 'Edit',
       submenu: [
         {
           label: 'Undo',
           accelerator: 'CmdOrCtrl+Z',
-          role: 'undo'
+          role: 'undo',
         },
         {
           label: 'Redo',
           accelerator: 'Shift+CmdOrCtrl+Z',
-          role: 'redo'
+          role: 'redo',
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
           label: 'Cut',
           accelerator: 'CmdOrCtrl+X',
-          role: 'cut'
+          role: 'cut',
         },
         {
           label: 'Copy',
           accelerator: 'CmdOrCtrl+C',
-          role: 'copy'
+          role: 'copy',
         },
         {
           label: 'Paste',
           accelerator: 'CmdOrCtrl+V',
-          role: 'paste'
+          role: 'paste',
         },
         {
           label: 'Select All',
           accelerator: 'CmdOrCtrl+A',
-          role: 'selectall'
+          role: 'selectall',
         },
-      ]
-    }
+      ],
+    },
   ];
 
-  if (process.platform == 'darwin') {
-    let name = app.getName();
+  if (process.platform === 'darwin') {
+    const name = app.getName();
     template.unshift({
       label: name,
       submenu: [
         {
-          label: 'About ' + name,
-          role: 'about'
+          label: `About ${name}`,
+          role: 'about',
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
           label: 'Services',
           role: 'services',
-          submenu: []
+          submenu: [],
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
-          label: 'Hide ' + name,
+          label: `Hide ${name}`,
           accelerator: 'Command+H',
-          role: 'hide'
+          role: 'hide',
         },
         {
           label: 'Hide Others',
           accelerator: 'Command+Alt+H',
-          role: 'hideothers'
+          role: 'hideothers',
         },
         {
           label: 'Show All',
-          role: 'unhide'
+          role: 'unhide',
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
           label: 'Quit',
           accelerator: 'Command+Q',
-          click: () => app.quit()
+          click: () => app.quit(),
         },
-      ]
+      ],
     });
   }
 
-  let menu = Menu.buildFromTemplate(template);
+  const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  let contextMenu = Menu.buildFromTemplate([
-    { label: 'Hide Window', click: () => hideWindow() }
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Hide Window', click: () => hideWindow() },
   ]);
 
   appIcon.setToolTip('Waffle.io');
   appIcon.on('click', () => {
-    mainWindow.isVisible() ? focusWindow() : showWindow()
-  })
+    if (mainWindow.isVisible()) {
+      focusWindow();
+    } else {
+      showWindow();
+    }
+  });
 
   appIcon.on('right-click', () => {
     appIcon.popUpContextMenu(contextMenu);
-  })
+  });
 
-  if(environment === 'development') {
+  if (environment === 'development') {
     mainWindow.webContents.openDevTools();
   }
 
@@ -179,15 +173,15 @@ function createWindow () {
   });
 
   const filter = {
-    urls: ["https://api.waffle.io/*"]
+    urls: ['https://api.waffle.io/*'],
   };
 
   mainWindow.webContents.session.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
-    if(details.requestHeaders['Authorization']){
+    if (details.requestHeaders.Authorization) {
       headers = details.requestHeaders;
     }
-    callback({cancel: false, requestHeaders: details.requestHeaders});
-  })
+    callback({ cancel: false, requestHeaders: details.requestHeaders });
+  });
 }
 
 app.on('ready', createWindow);
@@ -201,7 +195,12 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
-  }else{
+  } else {
     showWindow();
   }
+});
+
+ipcMain.on('project-changed', (event, data) => {
+  clearBadge();
+  projectName = data.title;
 });
