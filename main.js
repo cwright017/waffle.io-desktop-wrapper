@@ -43,20 +43,28 @@ function getPullRequests() {
   });
 }
 
-function createWindow() {
-  mainWindow = new BrowserWindow({ width: 800, height: 600, alwaysOnTop: false, frame: false });
-  mainWindow.loadURL(`file://${__dirname}/app/index.html`);
-  mainWindow.maximize();
-  mainWindow.setResizable(false);
-
+function createTray() {
   appIcon = new Tray(`${__dirname}/images/visible.png`);
 
-  setInterval(() => {
-    if (projectName) {
-      getPullRequests();
-    }
-  }, 5000);
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Hide Window', click: () => hideWindow() },
+  ]);
 
+  appIcon.setToolTip('Waffle.io');
+  appIcon.on('click', () => {
+    if (mainWindow.isVisible()) {
+      focusWindow();
+    } else {
+      showWindow();
+    }
+  });
+
+  appIcon.on('right-click', () => {
+    appIcon.popUpContextMenu(contextMenu);
+  });
+}
+
+function createMenu() {
   const template = [
     {
       label: 'Edit',
@@ -146,32 +154,25 @@ function createWindow() {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
+}
 
-  const contextMenu = Menu.buildFromTemplate([
-    { label: 'Hide Window', click: () => hideWindow() },
-  ]);
-
-  appIcon.setToolTip('Waffle.io');
-  appIcon.on('click', () => {
-    if (mainWindow.isVisible()) {
-      focusWindow();
-    } else {
-      showWindow();
-    }
-  });
-
-  appIcon.on('right-click', () => {
-    appIcon.popUpContextMenu(contextMenu);
-  });
-
+function addDevTools() {
   if (environment === 'development') {
     mainWindow.webContents.openDevTools();
   }
+}
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+function pollForPullRequests() {
+  const timer = setInterval(() => {
+    if (projectName) {
+      getPullRequests();
+    }
+  }, 5000);
 
+  return timer;
+}
+
+function getRequestHeaders() {
   const filter = {
     urls: ['https://api.waffle.io/*'],
   };
@@ -184,7 +185,28 @@ function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+function createWindow() {
+  mainWindow = new BrowserWindow({ width: 800, height: 600, alwaysOnTop: false, frame: false });
+  mainWindow.loadURL(`file://${__dirname}/app/index.html`);
+  mainWindow.maximize();
+  mainWindow.setResizable(false);
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+}
+
+function init() {
+  createWindow();
+  createMenu();
+  createTray();
+  addDevTools();
+
+  getRequestHeaders();
+  pollForPullRequests();
+}
+
+app.on('ready', init);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -194,7 +216,7 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
-    createWindow();
+    init();
   } else {
     showWindow();
   }
