@@ -3,7 +3,8 @@ const gulp = require('gulp'),
     install = require('gulp-install'),
     babel = require('gulp-babel'),
     packager = require('electron-packager'),
-    runElectron = require("gulp-run-electron");
+    runElectron = require("gulp-run-electron"),
+    eslint = require('gulp-eslint');
 
 gulp.task('clean', () => {
   return gulp.src('package', {read: false})
@@ -52,9 +53,16 @@ gulp.task('package', ['precompile'], () => {
   });
 });
 
+gulp.task('lint', ['precompile'], function () {
+    return gulp.src(['**/*.js','!node_modules/**'])
+        .pipe(eslint())
+        .pipe(eslint.format())
+        .pipe(eslint.failAfterError());
+});
+
 gulp.task('watch', () => {
     gulp.watch(['./app/**/*', 'main.js'], ['start-dev']);
 });
 
-gulp.task('default', ['clean', 'copy-app', 'install', 'precompile', 'package']);
-gulp.task('start-dev', ['clean', 'copy-app', 'install', 'precompile', 'run']);
+gulp.task('default', ['clean', 'copy-app', 'install', 'precompile', 'lint', 'package']);
+gulp.task('start-dev', ['clean', 'copy-app', 'install', 'precompile', 'lint', 'run']);
