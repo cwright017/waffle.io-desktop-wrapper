@@ -53,7 +53,11 @@ function createTray() {
   appIcon.setToolTip('Waffle.io');
   appIcon.on('click', () => {
     if (mainWindow.isVisible()) {
-      focusWindow();
+      if (mainWindow.isFocused()) {
+        hideWindow();
+      } else {
+        focusWindow();
+      }
     } else {
       showWindow();
     }

@@ -67,3 +67,4 @@ gulp.task('watch', () => {
 gulp.task('default', gulp.series('clean', 'lint', 'copy-app', 'install', 'precompile', 'package'));
 gulp.task('start-dev', gulp.series('clean', 'lint', 'copy-app', 'install', 'precompile', 'run'));
 gulp.task('start-dev-no-lint', gulp.series('clean', 'copy-app', 'install', 'precompile', 'run'));
+gulp.task('lint', gulp.series('clean', 'lint'));
