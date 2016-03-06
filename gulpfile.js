@@ -11,17 +11,17 @@ gulp.task('clean', () => {
     .pipe(clean({force: true}));
 });
 
-gulp.task('copy-app', ['clean', 'lint'], () => {
+gulp.task('copy-app', () => {
   return gulp.src(['app/**/*', 'images/**/*', 'main.js', 'package.json'], {base: '.'})
     .pipe(gulp.dest('package'));
 });
 
-gulp.task('install', ['copy-app'], () => {
+gulp.task('install', () => {
   return gulp.src('./package/package.json')
     .pipe(install({production: true}));
 });
 
-gulp.task('precompile', ['lint', 'install'], () => {
+gulp.task('precompile', () => {
   return gulp.src('./package/**/*.js')
           .pipe(babel({
               presets: ['es2015']
@@ -29,12 +29,12 @@ gulp.task('precompile', ['lint', 'install'], () => {
           .pipe(gulp.dest('./package'))
 });
 
-gulp.task('run', ['precompile'], () => {
+gulp.task('run', () => {
   gulp.src("./package")
   	.pipe(runElectron());
 });
 
-gulp.task('package', ['precompile'], () => {
+gulp.task('package', () => {
   const options = {
          dir: "./package",
          platform: "darwin",
@@ -48,8 +48,8 @@ gulp.task('package', ['precompile'], () => {
   packager(options, function done (err, appPath) {
          if(err) { return console.log(err); }
          console.log('App created: ' + appPath);
-        gulp.src('package', {read: false})
-           .pipe(clean({force: true}));
+        // gulp.src('package', {read: false})
+        //    .pipe(clean({force: true}));
   });
 });
 
@@ -64,5 +64,6 @@ gulp.task('watch', () => {
     gulp.watch(['./app/**/*', 'main.js'], ['start-dev']);
 });
 
-gulp.task('default', ['clean', 'lint', 'copy-app', 'install', 'precompile', 'package']);
-gulp.task('start-dev', ['clean', 'lint', 'copy-app', 'install', 'precompile', 'run']);
+gulp.task('default', gulp.series('clean', 'lint', 'copy-app', 'install', 'precompile', 'package'));
+gulp.task('start-dev', gulp.series('clean', 'lint', 'copy-app', 'install', 'precompile', 'run'));
+gulp.task('start-dev-no-lint', gulp.series('clean', 'copy-app', 'install', 'precompile', 'run'));

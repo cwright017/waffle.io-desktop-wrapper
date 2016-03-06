@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "NODE_ENV=development gulp start-dev",
+    "start-no-lint": "NODE_ENV=development gulp start-dev-no-lint",
     "package": "gulp package"
   },
   "repository": {
@@ -29,7 +30,7 @@
     "electron-prebuilt": "^0.36.0",
     "eslint": "^2.2.0",
     "eslint-config-airbnb": "^6.0.2",
-    "gulp": "^3.9.1",
+    "gulp": "github:gulpjs/gulp#4.0",
     "gulp-babel": "^6.1.2",
     "gulp-clean": "^0.3.1",
     "gulp-eslint": "^2.0.0",
