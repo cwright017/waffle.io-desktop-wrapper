@@ -1,5 +1,5 @@
 'use strict';
-import { ipcMain, app, Menu, Tray, BrowserWindow } from 'electron';
+import { ipcMain, app, Menu, Tray, BrowserWindow , globalShortcut } from 'electron';
 import fetch from 'node-fetch';
 const environment = process.env.NODE_ENV || 'production';
 
@@ -52,20 +52,34 @@ function createTray() {
 
   appIcon.setToolTip('Waffle.io');
   appIcon.on('click', () => {
-    if (mainWindow.isVisible()) {
-      if (mainWindow.isFocused()) {
-        hideWindow();
-      } else {
-        focusWindow();
-      }
-    } else {
-      showWindow();
-    }
+    toggleMainWindow();
   });
 
   appIcon.on('right-click', () => {
     appIcon.popUpContextMenu(contextMenu);
   });
+}
+
+function registerHotkey(item) {
+  if (item && item.checked) {
+    const hotkey = globalShortcut.register('alt+w', function() {
+      toggleMainWindow();
+    });
+  } else {
+    globalShortcut.unregisterAll();
+  }
+}
+
+function toggleMainWindow() {
+  if (mainWindow.isVisible()) {
+    if (mainWindow.isFocused()) {
+      hideWindow();
+    } else {
+      focusWindow();
+    }
+  } else {
+    showWindow();
+  }
 }
 
 function createMenu() {
@@ -118,6 +132,20 @@ function createMenu() {
         {
           label: `About ${name}`,
           role: 'about',
+        },
+        {
+          type: 'separator',
+        },
+        {
+          label: 'Toggle window',
+          accelerator: 'alt+w',
+          click: () => toggleMainWindow()
+        },
+        {
+          label: 'Set toggle shortcut globally',
+          type: 'checkbox',
+          checked: true,
+          click: (item) => registerHotkey(item)
         },
         {
           type: 'separator',
@@ -204,6 +232,7 @@ function init() {
   createWindow();
   createMenu();
   createTray();
+  registerHotkey();
   addDevTools();
 
   getRequestHeaders();
@@ -224,6 +253,10 @@ app.on('activate', () => {
   } else {
     showWindow();
   }
+});
+
+app.on('will-quit', function() {
+  globalShortcut.unregisterAll();
 });
 
 ipcMain.on('project-changed', (event, data) => {
