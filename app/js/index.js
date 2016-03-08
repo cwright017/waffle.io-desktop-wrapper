@@ -18,6 +18,10 @@
     popup.focus();
   };
 
+  ipcRenderer.on('refresh', () => {
+    webview.reload();
+  });
+
   webview.addEventListener('page-title-updated', (e) => {
     ipcRenderer.send('project-changed', e);
   });

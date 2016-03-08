@@ -1,5 +1,5 @@
 'use strict';
-import { ipcMain, app, Menu, Tray, BrowserWindow , globalShortcut } from 'electron';
+import { ipcMain, app, Menu, Tray, BrowserWindow, globalShortcut } from 'electron';
 import fetch from 'node-fetch';
 const environment = process.env.NODE_ENV || 'production';
 
@@ -43,6 +43,18 @@ function getPullRequests() {
   });
 }
 
+function toggleMainWindow() {
+  if (mainWindow.isVisible()) {
+    if (mainWindow.isFocused()) {
+      hideWindow();
+    } else {
+      focusWindow();
+    }
+  } else {
+    showWindow();
+  }
+}
+
 function createTray() {
   appIcon = new Tray(`${__dirname}/images/visible.png`);
 
@@ -62,23 +74,11 @@ function createTray() {
 
 function registerHotkey(item) {
   if (item && item.checked) {
-    const hotkey = globalShortcut.register('alt+w', function() {
+    globalShortcut.register('alt+w', () => {
       toggleMainWindow();
     });
   } else {
     globalShortcut.unregisterAll();
-  }
-}
-
-function toggleMainWindow() {
-  if (mainWindow.isVisible()) {
-    if (mainWindow.isFocused()) {
-      hideWindow();
-    } else {
-      focusWindow();
-    }
-  } else {
-    showWindow();
   }
 }
 
@@ -137,15 +137,20 @@ function createMenu() {
           type: 'separator',
         },
         {
+          label: 'Reload',
+          accelerator: 'cmd+r',
+          click: () => mainWindow.webContents.send('refresh'),
+        },
+        {
           label: 'Toggle window',
           accelerator: 'alt+w',
-          click: () => toggleMainWindow()
+          click: () => toggleMainWindow(),
         },
         {
           label: 'Set toggle shortcut globally',
           type: 'checkbox',
           checked: true,
-          click: (item) => registerHotkey(item)
+          click: (item) => registerHotkey(item),
         },
         {
           type: 'separator',
@@ -228,12 +233,21 @@ function createWindow() {
   });
 }
 
+function startWindowRefreshTimer() {
+  setInterval(() => {
+    if (!mainWindow.isFocused()) {
+      mainWindow.webContents.send('refresh');
+    }
+  }, 600000);
+}
+
 function init() {
   createWindow();
   createMenu();
   createTray();
   registerHotkey();
   addDevTools();
+  startWindowRefreshTimer();
 
   getRequestHeaders();
   pollForPullRequests();
@@ -255,7 +269,7 @@ app.on('activate', () => {
   }
 });
 
-app.on('will-quit', function() {
+app.on('will-quit', () => {
   globalShortcut.unregisterAll();
 });
 
