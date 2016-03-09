@@ -43,7 +43,7 @@ gulp.task('package', () => {
          out: "./_packages",
          overwrite: true,
          asar: true,
-         "app-version": "0.1.0"
+         "app-version": "0.2.0"
      };
   packager(options, function done (err, appPath) {
          if(err) { return console.log(err); }
