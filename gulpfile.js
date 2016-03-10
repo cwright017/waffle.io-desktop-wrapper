@@ -4,7 +4,11 @@ const gulp = require('gulp'),
     babel = require('gulp-babel'),
     packager = require('electron-packager'),
     runElectron = require("gulp-run-electron"),
-    eslint = require('gulp-eslint');
+    eslint = require('gulp-eslint'),
+    appdmg = require('gulp-appdmg'),
+    fs = require('fs');
+
+const packageData = JSON.parse(fs.readFileSync('./package.json'));
 
 gulp.task('clean', () => {
   return gulp.src('package', {read: false})
@@ -43,13 +47,11 @@ gulp.task('package', () => {
          out: "./_packages",
          overwrite: true,
          asar: true,
-         "app-version": "0.2.0"
+         "app-version": packageData.version
      };
   packager(options, function done (err, appPath) {
          if(err) { return console.log(err); }
-         console.log('App created: ' + appPath);
-        // gulp.src('package', {read: false})
-        //    .pipe(clean({force: true}));
+         return console.log('App created: ' + appPath);
   });
 });
 
@@ -58,6 +60,14 @@ gulp.task('lint', function () {
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
+});
+
+gulp.task('release', function() {
+  return gulp.src(['apppackage.json'])
+    .pipe(appdmg({
+      source: 'apppackage.json',
+      target: `./_packages/waffle.io-desktop-wrapper-darwin-x64/${packageData.name}-${packageData.version}.dmg`
+    }));
 });
 
 gulp.task('watch', () => {

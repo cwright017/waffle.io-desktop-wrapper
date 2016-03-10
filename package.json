@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=development gulp start-dev",
     "start-no-lint": "NODE_ENV=development gulp start-dev-no-lint",
-    "package": "gulp"
+    "package": "gulp && gulp release && open ./_packages/waffle.io-desktop-wrapper-darwin-x64"
   },
   "repository": {
     "type": "git",
