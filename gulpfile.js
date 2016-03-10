@@ -9,42 +9,44 @@ const gulp = require('gulp'),
     fs = require('fs');
 
 const packageData = JSON.parse(fs.readFileSync('./package.json'));
+const buildDir = 'package'
+const outDir = '_packages'
 
 gulp.task('clean', () => {
-  return gulp.src('package', {read: false})
+  return gulp.src(buildDir, {read: false, allowEmpty: true})
     .pipe(clean({force: true}));
 });
 
 gulp.task('copy-app', () => {
-  return gulp.src(['app/**/*', 'images/**/*', 'main.js', 'package.json'], {base: '.'})
-    .pipe(gulp.dest('package'));
+  return gulp.src(['app/**/*', 'images/**/*', 'main.js', 'package.json', 'waffle.png'], {base: '.'})
+    .pipe(gulp.dest(buildDir));
 });
 
 gulp.task('install', () => {
-  return gulp.src('./package/package.json')
+  return gulp.src(`./${buildDir}/package.json`)
     .pipe(install({production: true}));
 });
 
 gulp.task('precompile', () => {
-  return gulp.src('./package/**/*.js')
+  return gulp.src(`./${buildDir}/**/*.js`)
           .pipe(babel({
               presets: ['es2015']
           }))
-          .pipe(gulp.dest('./package'))
+          .pipe(gulp.dest(`./${buildDir}`))
 });
 
 gulp.task('run', () => {
-  gulp.src("./package")
+  gulp.src(`./${buildDir}`)
   	.pipe(runElectron());
 });
 
 gulp.task('package', () => {
   const options = {
-         dir: "./package",
+         dir: `./${buildDir}`,
          platform: "darwin",
          arch: "x64",
          icon: "./images/icon.icns",
-         out: "./_packages",
+         out: `./${outDir}`,
          overwrite: true,
          asar: true,
          "app-version": packageData.version
@@ -63,11 +65,29 @@ gulp.task('lint', function () {
 });
 
 gulp.task('release', function() {
-  return gulp.src(['apppackage.json'])
-    .pipe(appdmg({
-      source: 'apppackage.json',
-      target: `./_packages/waffle.io-desktop-wrapper-darwin-x64/${packageData.name}-${packageData.version}.dmg`
-    }));
+  const data = {
+    "title": `${packageData.name}`,
+    "background": "./waffle.png",
+    "icon-size": 80,
+    "contents": [
+      { "x": 25, "y": 125, "type": "link", "path": "/Applications" },
+      { "x": 225, "y": 125, "type": "file", "path": `../${outDir}/${packageData.name}-darwin-x64/${packageData.name}.app` }
+    ]
+  };
+  const outputFilename = `./${buildDir}/appPackage.json`;
+
+  fs.writeFile(`${outputFilename}`, JSON.stringify(data, null, 4), function(err) {
+    if(err) {
+      return console.log(err);
+    } else {
+      console.log("JSON saved to " + outputFilename);
+      return gulp.src(['*'])
+        .pipe(appdmg({
+          source: `${outputFilename}`,
+          target: `./${outDir}/${packageData.name}-darwin-x64/${packageData.name}-v${packageData.version}.dmg`
+        }));
+    }
+  });
 });
 
 gulp.task('watch', () => {

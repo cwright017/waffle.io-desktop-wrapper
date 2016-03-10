@@ -1,9 +1,0 @@
-{
-  "title": "Waffle.io-desktop-wrapper",
-  "background": "./waffle.png",
-  "icon-size": 80,
-  "contents": [
-    { "x": 25, "y": 125, "type": "link", "path": "/Applications" },
-    { "x": 225, "y": 125, "type": "file", "path": "./_packages/waffle.io-desktop-wrapper-darwin-x64/waffle.io-desktop-wrapper.app" }
-  ]
-}
