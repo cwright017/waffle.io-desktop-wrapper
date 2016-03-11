@@ -49,18 +49,14 @@ function getPullRequests() {
 }
 
 function toggleMainWindow() {
-  if (mainWindow === null) {
-    createWindow();
-  } else {
-    if (mainWindow.isVisible()) {
-      if (mainWindow.isFocused()) {
-        hideWindow();
-      } else {
-        focusWindow();
-      }
+  if (mainWindow && mainWindow.isVisible()) {
+    if (mainWindow.isFocused()) {
+      hideWindow();
     } else {
-      showWindow();
+      focusWindow();
     }
+  } else {
+    showWindow();
   }
 }
 
