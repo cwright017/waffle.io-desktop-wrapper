@@ -22,8 +22,16 @@
     webview.reload();
   });
 
+  ipcRenderer.on('load-page', (event, url) => {
+    webview.loadURL(url);
+  });
+
   webview.addEventListener('page-title-updated', (e) => {
     ipcRenderer.send('project-changed', e);
+  });
+
+  webview.addEventListener('did-navigate-in-page', (url) => {
+    ipcRenderer.send('did-navigate', url);
   });
 
   webview.addEventListener('new-window', (e) => {

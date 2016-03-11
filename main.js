@@ -7,6 +7,7 @@ let mainWindow;
 let appIcon;
 let projectName;
 let headers;
+let currentPage;
 
 function clearBadge() {
   appIcon.setTitle('');
@@ -23,9 +24,13 @@ function hideWindow() {
 }
 
 function showWindow() {
-  mainWindow.show();
-  mainWindow.focus();
-  appIcon.setImage(`${__dirname}/images/visible.png`);
+  if (mainWindow === null) {
+    createWindow();
+  } else {
+    mainWindow.show();
+    mainWindow.focus();
+    appIcon.setImage(`${__dirname}/images/visible.png`);
+  }
 }
 
 function getPullRequests() {
@@ -44,14 +49,18 @@ function getPullRequests() {
 }
 
 function toggleMainWindow() {
-  if (mainWindow.isVisible()) {
-    if (mainWindow.isFocused()) {
-      hideWindow();
-    } else {
-      focusWindow();
-    }
+  if (mainWindow === null) {
+    createWindow();
   } else {
-    showWindow();
+    if (mainWindow.isVisible()) {
+      if (mainWindow.isFocused()) {
+        hideWindow();
+      } else {
+        focusWindow();
+      }
+    } else {
+      showWindow();
+    }
   }
 }
 
@@ -223,14 +232,23 @@ function getRequestHeaders() {
 }
 
 function createWindow() {
-  mainWindow = new BrowserWindow({ width: 800, height: 600, alwaysOnTop: false, frame: false });
+  mainWindow = new BrowserWindow({ width: 800, height: 600, alwaysOnTop: false });
   mainWindow.loadURL(`file://${__dirname}/app/index.html`);
   mainWindow.maximize();
-  mainWindow.setResizable(false);
+  appIcon.setImage(`${__dirname}/images/visible.png`);
+
+  mainWindow.webContents.on('dom-ready', () => {
+    if (currentPage && currentPage !== "") {
+      mainWindow.webContents.send('load-page', currentPage);
+    }
+  });
 
   mainWindow.on('closed', () => {
+    appIcon.setImage(`${__dirname}/images/hidden.png`);
     mainWindow = null;
   });
+
+  addDevTools();
 }
 
 function startWindowRefreshTimer() {
@@ -242,9 +260,9 @@ function startWindowRefreshTimer() {
 }
 
 function init() {
+  createTray();
   createWindow();
   createMenu();
-  createTray();
   registerHotkey();
   addDevTools();
   startWindowRefreshTimer();
@@ -263,7 +281,7 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
-    init();
+    createWindow();
   } else {
     showWindow();
   }
@@ -271,6 +289,10 @@ app.on('activate', () => {
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
+});
+
+ipcMain.on('did-navigate', (event, data) => {
+  currentPage = data.url;
 });
 
 ipcMain.on('project-changed', (event, data) => {

@@ -1,0 +1,11 @@
+{
+ "cmd": "npm start",
+ "name": "Start",
+ "sh": true,
+ "cwd": "{PROJECT_PATH}",
+ "env": {
+ },
+ "errorMatch": [
+ ],
+ "keymap": "CMD+B"
+}
