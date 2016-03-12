@@ -23,16 +23,6 @@ function hideWindow() {
   appIcon.setImage(`${__dirname}/images/hidden.png`);
 }
 
-function showWindow() {
-  if (mainWindow === null) {
-    createWindow();
-  } else {
-    mainWindow.show();
-    mainWindow.focus();
-    appIcon.setImage(`${__dirname}/images/visible.png`);
-  }
-}
-
 function getPullRequests() {
   fetch(`https://api.waffle.io/${projectName}/cards`, { headers })
   .then((res) => res.json())
@@ -46,6 +36,42 @@ function getPullRequests() {
       clearBadge();
     }
   });
+}
+
+function addDevTools() {
+  if (environment === 'development') {
+    mainWindow.webContents.openDevTools();
+  }
+}
+
+function createWindow() {
+  mainWindow = new BrowserWindow({ width: 800, height: 600, alwaysOnTop: false });
+  mainWindow.loadURL(`file://${__dirname}/app/index.html`);
+  mainWindow.maximize();
+  appIcon.setImage(`${__dirname}/images/visible.png`);
+
+  mainWindow.webContents.on('dom-ready', () => {
+    if (currentPage && currentPage !== '') {
+      mainWindow.webContents.send('load-page', currentPage);
+    }
+  });
+
+  mainWindow.on('closed', () => {
+    appIcon.setImage(`${__dirname}/images/hidden.png`);
+    mainWindow = null;
+  });
+
+  addDevTools();
+}
+
+function showWindow() {
+  if (mainWindow === null) {
+    createWindow();
+  } else {
+    mainWindow.show();
+    mainWindow.focus();
+    appIcon.setImage(`${__dirname}/images/visible.png`);
+  }
 }
 
 function toggleMainWindow() {
@@ -198,12 +224,6 @@ function createMenu() {
   Menu.setApplicationMenu(menu);
 }
 
-function addDevTools() {
-  if (environment === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
-}
-
 function pollForPullRequests() {
   const timer = setInterval(() => {
     if (projectName) {
@@ -225,26 +245,6 @@ function getRequestHeaders() {
     }
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
-}
-
-function createWindow() {
-  mainWindow = new BrowserWindow({ width: 800, height: 600, alwaysOnTop: false });
-  mainWindow.loadURL(`file://${__dirname}/app/index.html`);
-  mainWindow.maximize();
-  appIcon.setImage(`${__dirname}/images/visible.png`);
-
-  mainWindow.webContents.on('dom-ready', () => {
-    if (currentPage && currentPage !== "") {
-      mainWindow.webContents.send('load-page', currentPage);
-    }
-  });
-
-  mainWindow.on('closed', () => {
-    appIcon.setImage(`${__dirname}/images/hidden.png`);
-    mainWindow = null;
-  });
-
-  addDevTools();
 }
 
 function startWindowRefreshTimer() {
